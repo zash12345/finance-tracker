@@ -1,0 +1,435 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans); }
+  .app { padding: 1rem 0; }
+  .nav { display: flex; gap: 4px; margin-bottom: 1.5rem; border-bottom: 0.5px solid var(--color-border-tertiary); padding-bottom: 0; }
+  .nav button { background: none; border: none; border-bottom: 2px solid transparent; padding: 8px 16px; font-size: 13px; color: var(--color-text-secondary); cursor: pointer; margin-bottom: -1px; transition: all 0.15s; border-radius: 0; }
+  .nav button.active { color: var(--color-text-primary); border-bottom-color: var(--color-text-primary); font-weight: 500; }
+  .nav button:hover:not(.active) { color: var(--color-text-primary); }
+  .section { display: none; }
+  .section.active { display: block; }
+  .card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 12px; }
+  .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px 14px; }
+  .metric-label { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .metric-value { font-size: 18px; font-weight: 500; color: var(--color-text-primary); }
+  .metric-value.red { color: var(--color-text-danger); }
+  .metric-value.green { color: var(--color-text-success); }
+  .row-header { display: grid; grid-template-columns: 80px 1fr 90px 80px 80px; gap: 8px; font-size: 11px; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.04em; padding: 0 0 6px; border-bottom: 0.5px solid var(--color-border-tertiary); margin-bottom: 4px; }
+  .expense-row { display: grid; grid-template-columns: 80px 1fr 90px 80px 80px; gap: 8px; align-items: center; padding: 7px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 13px; }
+  .expense-row:last-child { border-bottom: none; }
+  .badge { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 4px; font-weight: 500; }
+  .badge-food { background: #EAF3DE; color: #3B6D11; }
+  .badge-snack { background: #FAEEDA; color: #854F0B; }
+  .badge-cook { background: #E1F5EE; color: #0F6E56; }
+  .badge-drink { background: #E6F1FB; color: #185FA5; }
+  .badge-bbm { background: #FCEBEB; color: #A32D2D; }
+  .badge-laundry { background: #EEEDFE; color: #534AB7; }
+  .badge-skincare { background: #FBEAF0; color: #993556; }
+  .badge-other { background: var(--color-background-secondary); color: var(--color-text-secondary); }
+  .badge-acc { background: var(--color-background-secondary); color: var(--color-text-secondary); font-size: 10px; padding: 2px 6px; border-radius: 4px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-group label { font-size: 11px; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.04em; }
+  .form-group input, .form-group select { font-size: 13px; padding: 7px 10px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); outline: none; }
+  .form-group input:focus, .form-group select:focus { border-color: var(--color-border-primary); }
+  .btn { padding: 8px 18px; font-size: 13px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); cursor: pointer; background: var(--color-background-primary); color: var(--color-text-primary); transition: all 0.12s; }
+  .btn:hover { background: var(--color-background-secondary); }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--color-text-primary); color: var(--color-background-primary); border-color: var(--color-text-primary); }
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-sm { padding: 4px 10px; font-size: 11px; }
+  .section-title { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .bank-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+  .bank-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: var(--color-background-secondary); border-radius: var(--border-radius-md); }
+  .bank-name { font-size: 12px; color: var(--color-text-secondary); }
+  .bank-val { font-size: 13px; font-weight: 500; }
+  .payable-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 13px; }
+  .payable-row:last-child { border-bottom: none; }
+  .due-badge { font-size: 11px; background: #FCEBEB; color: #A32D2D; padding: 2px 8px; border-radius: 4px; }
+  .fixed-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: 13px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .fixed-row:last-child { border-bottom: none; }
+  .tabs-inner { display: flex; gap: 4px; margin-bottom: 12px; }
+  .tabs-inner button { font-size: 12px; padding: 5px 12px; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); cursor: pointer; background: none; color: var(--color-text-secondary); }
+  .tabs-inner button.active { background: var(--color-text-primary); color: var(--color-background-primary); border-color: var(--color-text-primary); }
+  .del-btn { background: none; border: none; cursor: pointer; font-size: 14px; color: var(--color-text-secondary); padding: 0 4px; line-height: 1; }
+  .del-btn:hover { color: var(--color-text-danger); }
+  .chart-wrap { position: relative; width: 100%; height: 220px; margin-top: 12px; }
+  .empty { font-size: 13px; color: var(--color-text-secondary); padding: 12px 0; text-align: center; }
+  .date-group { font-size: 11px; color: var(--color-text-secondary); padding: 10px 0 2px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+  .pdf-btn-wrap { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+  @media (max-width: 480px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .row-header, .expense-row { grid-template-columns: 70px 1fr 80px 70px 30px; }
+  }
+</style>
+
+<div class="app">
+  <h2 class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden">Personal financial tracker with expense log, balances, payables, and monthly fixed costs</h2>
+
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+    <div>
+      <div style="font-size:20px; font-weight:500; color:var(--color-text-primary);" id="headerDate">27 Apr 2026</div>
+      <div style="font-size:13px; color:var(--color-text-secondary);">personal finance tracker</div>
+    </div>
+    <button class="btn btn-sm" onclick="exportPDF()">download PDF</button>
+  </div>
+
+  <div class="nav">
+    <button class="active" onclick="switchTab('overview')">overview</button>
+    <button onclick="switchTab('expenses')">expenses</button>
+    <button onclick="switchTab('accounts')">accounts</button>
+    <button onclick="switchTab('payables')">payables</button>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="section active" id="tab-overview">
+    <div class="metric-grid" id="overview-metrics"></div>
+    <div class="card">
+      <div class="section-title">spending by category</div>
+      <div class="chart-wrap"><canvas id="catChart" role="img" aria-label="Spending by category bar chart">Spending breakdown by category.</canvas></div>
+    </div>
+    <div class="card">
+      <div class="section-title">daily spending (last 7 days)</div>
+      <div class="chart-wrap"><canvas id="dayChart" role="img" aria-label="Daily spending last 7 days">Daily spending last 7 days.</canvas></div>
+    </div>
+  </div>
+
+  <!-- EXPENSES -->
+  <div class="section" id="tab-expenses">
+    <div class="card">
+      <div class="section-title">add expense</div>
+      <div class="form-grid">
+        <div class="form-group"><label>date</label><input type="date" id="e-date"></div>
+        <div class="form-group"><label>item</label><input type="text" id="e-item" placeholder="e.g. Nasi Uduk"></div>
+        <div class="form-group"><label>type</label>
+          <select id="e-type">
+            <option>Food</option><option>Snack</option><option>Cook</option><option>Drink</option>
+            <option>BBM</option><option>Laundry</option><option>Skincare</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group"><label>amount (Rp)</label><input type="number" id="e-amount" placeholder="0"></div>
+        <div class="form-group"><label>account</label>
+          <select id="e-account">
+            <option>cash</option><option>saqu</option><option>bsi</option><option>gopay</option>
+            <option>mandiri</option><option>ovo</option><option>bni</option><option>shopee</option>
+            <option>astrapay</option>
+          </select>
+        </div>
+        <div class="form-group" style="justify-content:flex-end;">
+          <button class="btn btn-primary" onclick="addExpense()" style="margin-top:auto;">add</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title">log</div>
+      <div id="expense-list"></div>
+    </div>
+  </div>
+
+  <!-- ACCOUNTS -->
+  <div class="section" id="tab-accounts">
+    <div class="card">
+      <div class="section-title">balances</div>
+      <div id="account-form" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
+        <div class="form-group"><label>account</label>
+          <select id="a-name">
+            <option>saqu</option><option>bsi</option><option>gopay</option><option>mandiri</option>
+            <option>ovo</option><option>bni</option><option>shopee</option><option>astrapay</option><option>cash</option>
+          </select>
+        </div>
+        <div class="form-group"><label>balance (Rp)</label><input type="number" id="a-amount" placeholder="0"></div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="updateBalance()">update balance</button>
+      <div style="margin-top:14px;" id="bank-list"></div>
+    </div>
+    <div class="card">
+      <div class="section-title">monthly fixed costs</div>
+      <div id="fixed-list"></div>
+    </div>
+  </div>
+
+  <!-- PAYABLES -->
+  <div class="section" id="tab-payables">
+    <div class="card">
+      <div class="section-title">add payable</div>
+      <div class="form-grid">
+        <div class="form-group"><label>source</label><input type="text" id="p-source" placeholder="e.g. Shopee Credit"></div>
+        <div class="form-group"><label>item</label><input type="text" id="p-item" placeholder="e.g. jok supra"></div>
+        <div class="form-group"><label>amount (Rp)</label><input type="number" id="p-amount" placeholder="0"></div>
+        <div class="form-group"><label>due date</label><input type="date" id="p-due"></div>
+      </div>
+      <button class="btn btn-primary" onclick="addPayable()">add</button>
+    </div>
+    <div class="card">
+      <div class="section-title">outstanding</div>
+      <div id="payable-list"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const today = new Date();
+const fmt = (d) => d.toLocaleDateString('id-ID', {day:'2-digit', month:'short', year:'numeric'});
+document.getElementById('headerDate').textContent = fmt(today);
+
+const state = {
+  accounts: {saqu:18052932, bsi:14916, gopay:25516, mandiri:47593, ovo:48619, bni:649533, shopee:3233, astrapay:135000, cash:268000},
+  fixed: [{type:'food',daily:35000,weekly:245000,monthly:980000},{type:'bbm',daily:0,weekly:70000,monthly:280000},{type:'wifi',daily:0,weekly:0,monthly:100000},{type:'kas',daily:0,weekly:0,monthly:100000},{type:'monthly',daily:0,weekly:0,monthly:150000}],
+  payables: [
+    {id:1,source:'Shopee Credit',item:'tws-nakamichi',amount:154300,due:'2026-05-25'},
+    {id:2,source:'Shopee Credit',item:'jok supra',amount:69706,due:'2026-05-25'},
+    {id:3,source:'Shopee Credit',item:'tempered phone glass',amount:67360,due:'2026-05-25'},
+    {id:4,source:'tokped - credit',item:'camera',amount:122184,due:'2026-06-02'},
+    {id:5,source:'tokped - credit',item:'baclava',amount:41571,due:'2026-06-02'},
+    {id:6,source:'tokped - credit',item:'bedak oil',amount:73142,due:'2026-06-02'},
+  ],
+  expenses: [
+    {id:1,date:'2026-04-26',item:'Biscuit',type:'Snack',amount:7300,account:'cash'},
+    {id:2,date:'2026-04-26',item:'BlueBand',type:'Cook',amount:8400,account:'cash'},
+    {id:3,date:'2026-04-26',item:'Downy',type:'Laundry',amount:12000,account:'cash'},
+    {id:4,date:'2026-04-26',item:'Mitu-WetTissue',type:'Skincare',amount:9900,account:'cash'},
+    {id:5,date:'2026-04-26',item:'Sari Roti-RotiTawar',type:'Cook',amount:14900,account:'cash'},
+    {id:6,date:'2026-04-26',item:'Gorengan-5k',type:'Snack',amount:5000,account:'cash'},
+    {id:7,date:'2026-04-26',item:'SJW',type:'Drink',amount:8000,account:'cash'},
+    {id:8,date:'2026-04-26',item:'Pertamax',type:'BBM',amount:30000,account:'cash'},
+    {id:9,date:'2026-04-26',item:'LunchBox',type:'Other',amount:135600,account:'saqu'},
+    {id:10,date:'2026-04-27',item:'Nasi Uduk',type:'Food',amount:15000,account:'cash'},
+    {id:11,date:'2026-04-28',item:'Nasi Uduk',type:'Food',amount:15000,account:'cash'},
+  ],
+  nextId: 12,
+};
+
+const rp = (n) => 'Rp ' + Math.round(n).toLocaleString('id-ID');
+const badgeClass = (t) => ({Food:'food',Snack:'snack',Cook:'cook',Drink:'drink',BBM:'bbm',Laundry:'laundry',Skincare:'skincare',Other:'other'}[t] || 'other');
+
+function switchTab(t) {
+  document.querySelectorAll('.nav button').forEach((b,i) => b.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  const tabs = ['overview','expenses','accounts','payables'];
+  document.querySelectorAll('.nav button')[tabs.indexOf(t)].classList.add('active');
+  document.getElementById('tab-'+t).classList.add('active');
+  if(t==='overview') renderCharts();
+}
+
+function renderOverview() {
+  const totalBal = Object.values(state.accounts).reduce((a,b)=>a+b,0);
+  const totalPayable = state.payables.reduce((a,b)=>a+b.amount,0);
+  const totalFixed = state.fixed.reduce((a,b)=>a+b.monthly,0);
+  const todayStr = today.toISOString().split('T')[0];
+  const todaySpend = state.expenses.filter(e=>e.date===todayStr).reduce((a,b)=>a+b.amount,0);
+  const net = totalBal - totalPayable;
+  document.getElementById('overview-metrics').innerHTML = `
+    <div class="metric"><div class="metric-label">total balance</div><div class="metric-value">${rp(totalBal)}</div></div>
+    <div class="metric"><div class="metric-label">account payable</div><div class="metric-value red">${rp(totalPayable)}</div></div>
+    <div class="metric"><div class="metric-label">net balance</div><div class="metric-value ${net>=0?'green':'red'}">${rp(net)}</div></div>
+    <div class="metric"><div class="metric-label">fixed / month</div><div class="metric-value">${rp(totalFixed)}</div></div>
+    <div class="metric"><div class="metric-label">spent today</div><div class="metric-value">${rp(todaySpend)}</div></div>
+  `;
+}
+
+let catChartInst, dayChartInst;
+function renderCharts() {
+  renderOverview();
+  const cats = {};
+  state.expenses.forEach(e => { cats[e.type] = (cats[e.type]||0)+e.amount; });
+  const catLabels = Object.keys(cats);
+  const catData = catLabels.map(k=>cats[k]);
+  const palette = ['#1D9E75','#BA7517','#E24B4A','#378ADD','#D4537E','#639922','#7F77DD','#888780'];
+  if(catChartInst) catChartInst.destroy();
+  catChartInst = new Chart(document.getElementById('catChart'), {
+    type:'bar',
+    data:{labels:catLabels,datasets:[{label:'Amount',data:catData,backgroundColor:catLabels.map((_,i)=>palette[i%palette.length]),borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>'Rp '+Math.round(v/1000)+'k'},grid:{color:'rgba(0,0,0,0.04)'}},x:{grid:{display:false}}}}
+  });
+
+  const last7 = [];
+  for(let i=6;i>=0;i--){const d=new Date(today); d.setDate(d.getDate()-i); last7.push(d.toISOString().split('T')[0]);}
+  const dayLabels = last7.map(d=>d.slice(5));
+  const dayData = last7.map(d=>state.expenses.filter(e=>e.date===d).reduce((a,b)=>a+b.amount,0));
+  if(dayChartInst) dayChartInst.destroy();
+  dayChartInst = new Chart(document.getElementById('dayChart'), {
+    type:'line',
+    data:{labels:dayLabels,datasets:[{label:'Spent',data:dayData,borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,0.08)',fill:true,tension:0.3,pointRadius:4,pointBackgroundColor:'#1D9E75'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>'Rp '+Math.round(v/1000)+'k'},grid:{color:'rgba(0,0,0,0.04)'}},x:{grid:{display:false}}}}
+  });
+}
+
+function renderExpenses() {
+  const grouped = {};
+  [...state.expenses].sort((a,b)=>b.date.localeCompare(a.date)).forEach(e=>{
+    if(!grouped[e.date]) grouped[e.date]=[];
+    grouped[e.date].push(e);
+  });
+  let html = `<div class="row-header"><span>date</span><span>item</span><span>type</span><span>amount</span><span>acc</span></div>`;
+  for(const d of Object.keys(grouped)) {
+    const dayTotal = grouped[d].reduce((a,b)=>a+b.amount,0);
+    const [y,mo,day] = d.split('-');
+    html += `<div class="date-group">${day}/${mo}/${y} <span style="float:right;color:var(--color-text-danger)">${rp(dayTotal)}</span></div>`;
+    grouped[d].forEach(e => {
+      html += `<div class="expense-row">
+        <span style="font-size:11px;color:var(--color-text-secondary)"></span>
+        <span style="font-weight:500">${e.item}</span>
+        <span><span class="badge badge-${badgeClass(e.type)}">${e.type}</span></span>
+        <span style="font-size:12px">${rp(e.amount)}</span>
+        <span style="display:flex;gap:4px;align-items:center"><span class="badge-acc">${e.account}</span><button class="del-btn" onclick="delExpense(${e.id})">×</button></span>
+      </div>`;
+    });
+  }
+  if(!state.expenses.length) html = '<div class="empty">no expenses yet</div>';
+  document.getElementById('expense-list').innerHTML = html;
+}
+
+function addExpense() {
+  const date = document.getElementById('e-date').value;
+  const item = document.getElementById('e-item').value.trim();
+  const type = document.getElementById('e-type').value;
+  const amount = parseFloat(document.getElementById('e-amount').value);
+  const account = document.getElementById('e-account').value;
+  if(!date||!item||!amount) return;
+  state.expenses.push({id:state.nextId++,date,item,type,amount,account});
+  document.getElementById('e-item').value='';
+  document.getElementById('e-amount').value='';
+  renderExpenses();
+}
+
+function delExpense(id) {
+  state.expenses = state.expenses.filter(e=>e.id!==id);
+  renderExpenses();
+}
+
+function renderAccounts() {
+  let bankHtml = '<div class="bank-grid">';
+  for(const [k,v] of Object.entries(state.accounts)) {
+    bankHtml += `<div class="bank-item"><span class="bank-name">${k}</span><span class="bank-val">${rp(v)}</span></div>`;
+  }
+  const total = Object.values(state.accounts).reduce((a,b)=>a+b,0);
+  bankHtml += '</div>';
+  bankHtml += `<div style="margin-top:10px;padding-top:10px;border-top:0.5px solid var(--color-border-tertiary);display:flex;justify-content:space-between;font-size:13px;font-weight:500"><span>total</span><span>${rp(total)}</span></div>`;
+  document.getElementById('bank-list').innerHTML = bankHtml;
+
+  let fixHtml = '';
+  let fixTotal = 0;
+  state.fixed.forEach(f => {
+    fixHtml += `<div class="fixed-row"><span style="font-weight:500">${f.type}</span><span style="color:var(--color-text-secondary);font-size:12px">${rp(f.monthly)}/mo</span></div>`;
+    fixTotal += f.monthly;
+  });
+  fixHtml += `<div style="padding-top:8px;display:flex;justify-content:space-between;font-size:13px;font-weight:500"><span>total</span><span style="color:var(--color-text-danger)">${rp(fixTotal)}</span></div>`;
+  document.getElementById('fixed-list').innerHTML = fixHtml;
+}
+
+function updateBalance() {
+  const name = document.getElementById('a-name').value;
+  const amount = parseFloat(document.getElementById('a-amount').value);
+  if(!name||isNaN(amount)) return;
+  state.accounts[name] = amount;
+  document.getElementById('a-amount').value='';
+  renderAccounts();
+}
+
+function renderPayables() {
+  const grouped = {};
+  state.payables.forEach(p => {
+    const k = p.source;
+    if(!grouped[k]) grouped[k]={items:[],total:0,due:p.due};
+    grouped[k].items.push(p);
+    grouped[k].total += p.amount;
+  });
+  let html = '';
+  const totalAll = state.payables.reduce((a,b)=>a+b.amount,0);
+  for(const [src, g] of Object.entries(grouped)) {
+    html += `<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;"><span style="font-size:13px;font-weight:500">${src}</span><span class="due-badge">due ${g.due}</span></div>`;
+    g.items.forEach(p => {
+      html += `<div class="payable-row"><span>${p.item}</span><span style="display:flex;align-items:center;gap:8px">${rp(p.amount)}<button class="del-btn" onclick="delPayable(${p.id})">×</button></span></div>`;
+    });
+    html += `<div style="text-align:right;font-size:12px;color:var(--color-text-secondary);padding-top:4px">subtotal: <strong>${rp(g.total)}</strong></div></div>`;
+  }
+  html += `<div style="display:flex;justify-content:space-between;font-size:13px;font-weight:500;padding-top:10px;border-top:0.5px solid var(--color-border-tertiary)"><span>total payable</span><span style="color:var(--color-text-danger)">${rp(totalAll)}</span></div>`;
+  if(!state.payables.length) html = '<div class="empty">no payables</div>';
+  document.getElementById('payable-list').innerHTML = html;
+}
+
+function addPayable() {
+  const source = document.getElementById('p-source').value.trim();
+  const item = document.getElementById('p-item').value.trim();
+  const amount = parseFloat(document.getElementById('p-amount').value);
+  const due = document.getElementById('p-due').value;
+  if(!source||!item||!amount) return;
+  state.payables.push({id:state.nextId++,source,item,amount,due});
+  document.getElementById('p-item').value='';
+  document.getElementById('p-amount').value='';
+  renderPayables();
+}
+
+function delPayable(id) {
+  state.payables = state.payables.filter(p=>p.id!==id);
+  renderPayables();
+}
+
+function exportPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const totalBal = Object.values(state.accounts).reduce((a,b)=>a+b,0);
+  const totalPayable = state.payables.reduce((a,b)=>a+b.amount,0);
+  const totalFixed = state.fixed.reduce((a,b)=>a+b.monthly,0);
+  const todayStr = today.toISOString().split('T')[0];
+  const todaySpend = state.expenses.filter(e=>e.date===todayStr).reduce((a,b)=>a+b.amount,0);
+  let y = 18;
+  doc.setFontSize(16); doc.setFont('helvetica','bold');
+  doc.text('Financial Summary', 14, y); y+=8;
+  doc.setFontSize(10); doc.setFont('helvetica','normal');
+  doc.setTextColor(120); doc.text(fmt(today), 14, y); y+=10; doc.setTextColor(0);
+
+  doc.setFontSize(11); doc.setFont('helvetica','bold'); doc.text('Overview', 14, y); y+=6;
+  doc.setFontSize(10); doc.setFont('helvetica','normal');
+  doc.text('Total Balance: ' + rp(totalBal), 14, y); y+=5;
+  doc.text('Account Payable: ' + rp(totalPayable), 14, y); y+=5;
+  doc.text('Net Balance: ' + rp(totalBal-totalPayable), 14, y); y+=5;
+  doc.text('Monthly Fixed: ' + rp(totalFixed), 14, y); y+=5;
+  doc.text('Spent Today: ' + rp(todaySpend), 14, y); y+=10;
+
+  doc.setFontSize(11); doc.setFont('helvetica','bold'); doc.text('Account Balances', 14, y); y+=6;
+  doc.setFontSize(10); doc.setFont('helvetica','normal');
+  for(const [k,v] of Object.entries(state.accounts)) {
+    doc.text(`${k}: ${rp(v)}`, 14, y); y+=5;
+    if(y>270){doc.addPage();y=14;}
+  }
+  y+=4;
+
+  doc.setFontSize(11); doc.setFont('helvetica','bold'); doc.text('Account Payable', 14, y); y+=6;
+  doc.setFontSize(10); doc.setFont('helvetica','normal');
+  state.payables.forEach(p => {
+    doc.text(`${p.source} - ${p.item}: ${rp(p.amount)} (due ${p.due})`, 14, y); y+=5;
+    if(y>270){doc.addPage();y=14;}
+  });
+  y+=4;
+
+  doc.setFontSize(11); doc.setFont('helvetica','bold'); doc.text('Recent Expenses', 14, y); y+=6;
+  doc.setFontSize(10); doc.setFont('helvetica','normal');
+  const sorted = [...state.expenses].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,30);
+  sorted.forEach(e => {
+    doc.text(`${e.date} | ${e.item} (${e.type}) | ${rp(e.amount)} | ${e.account}`, 14, y); y+=5;
+    if(y>270){doc.addPage();y=14;}
+  });
+
+  doc.setFontSize(11); doc.setFont('helvetica','bold'); if(y>260){doc.addPage();y=14;} y+=4;
+  doc.text('Monthly Fixed Costs', 14, y); y+=6;
+  doc.setFontSize(10); doc.setFont('helvetica','normal');
+  state.fixed.forEach(f => { doc.text(`${f.type}: ${rp(f.monthly)}/mo`, 14, y); y+=5; });
+
+  doc.save('finance-summary.pdf');
+}
+
+// init default date to today
+document.getElementById('e-date').value = today.toISOString().split('T')[0];
+document.getElementById('p-due').value = today.toISOString().split('T')[0];
+
+renderOverview();
+renderExpenses();
+renderAccounts();
+renderPayables();
+setTimeout(renderCharts, 100);
+</script>
